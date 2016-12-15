@@ -10,6 +10,12 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
         _Entity = Entity
     End Sub
 
+    Public Sub Assert()
+        For Each FormProperty As FormProperty In Me.Values
+            FormProperty.setParent(Me)
+        Next
+    End Sub
+
     Public ReadOnly Property Name As String
         Get
             Return _Entity.Attributes("Name").Value
@@ -33,9 +39,9 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
             .Type = New CodeTypeReference(GetType(System.String))
             .Attributes = MemberAttributes.Override + MemberAttributes.FamilyOrAssembly
             .GetStatements.Add(Snippet("if _parent is nothing then"))
-            .GetStatements.Add(Snippet("return ""{0}""", Name))
+            .GetStatements.Add(Snippet("    return ""{0}""", Name))
             .GetStatements.Add(Snippet("else"))
-            .GetStatements.Add(Snippet("return ""{0}_SUBFORM""", Name))
+            .GetStatements.Add(Snippet("    return ""{0}_SUBFORM""", Name))
             .GetStatements.Add(Snippet("end if"))
         End With
 
@@ -627,15 +633,17 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
             With .Statements
                 .Add(Snippet("Dim f as boolean = false"))
                 For Each FormProperty As FormProperty In Me.Values
-                    .Add(Snippet("if _IsSet{0} then", FormProperty.Name))
-                    .Add(Snippet("  if f then"))
-                    .Add(Snippet("      jw.WriteRaw("", """"{0}"""": "")", FormProperty.Name))
-                    .Add(Snippet("  else"))
-                    .Add(Snippet("      jw.WriteRaw(""""""{0}"""": "")", FormProperty.Name))
-                    .Add(Snippet("      f = true"))
-                    .Add(Snippet("  end if"))
-                    .Add(Snippet("  jw.WriteValue(me.{0})", FormProperty.Name))
-                    .Add(Snippet("end if"))
+                    If Not FormProperty.IsReadOnly Then
+                        .Add(Snippet("if _IsSet{0} then", FormProperty.Name))
+                        .Add(Snippet("  if f then"))
+                        .Add(Snippet("      jw.WriteRaw("", """"{0}"""": "")", FormProperty.Name))
+                        .Add(Snippet("  else"))
+                        .Add(Snippet("      jw.WriteRaw(""""""{0}"""": "")", FormProperty.Name))
+                        .Add(Snippet("      f = true"))
+                        .Add(Snippet("  end if"))
+                        .Add(Snippet("  jw.WriteValue(me.{0})", FormProperty.Name))
+                        .Add(Snippet("end if"))
+                    End If
                 Next
 
                 For Each navigationProperty As NavigationProperty In Me.NavigationProperty.Values
@@ -768,6 +776,12 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
     Public ReadOnly Property Title() As String
         Get
             Return ThisForm.Attributes("title").Value
+        End Get
+    End Property
+
+    Public ReadOnly Property Updatable() As Boolean
+        Get
+            Return Not String.Compare(ThisForm.Attributes("del").Value, "Q", True) = 0
         End Get
     End Property
 

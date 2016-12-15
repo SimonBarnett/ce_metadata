@@ -91,7 +91,7 @@ Public Module Module1
         Loop Until i = 0 'processedEntities.Count = root.SelectNodes("EntityType").Count
 
         For Each entity As EntityType In processedEntities.Values
-            If String.Compare(entity.Name, "FAMILY_LOG") = 0 Then
+            If String.Compare(entity.Name, "FAMILY_LOG") = 0 Then                
                 Dim ns As New CodeNamespace("OData")
                 With ns
                     With .Imports
@@ -140,6 +140,7 @@ Public Module Module1
 
     Function BuildNameSpace(ByRef ns As CodeNamespace, ByVal EntityName As String) As CodeNamespace
         With ns
+            processedEntities(EntityName).Assert()
             .Types.Add(processedEntities(EntityName).QueryClass)
             .Types.Add(processedEntities(EntityName).CodeTypeDeclaration)
             If processedEntities(EntityName).NavigationProperty.Values.Count > 0 Then

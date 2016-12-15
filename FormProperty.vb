@@ -12,35 +12,40 @@ Public Class FormProperty
         _EntityName = EntityName
     End Sub
 
+    Private _Parent As EntityType
+    Public Sub setParent(ByRef EntityType As EntityType)
+        _Parent = EntityType
+    End Sub
+
 #End Region
 
 #Region "XML Properties"
 
-    Public ReadOnly Property MaxLength As Integer
+    Public ReadOnly Property MaxLength() As Integer
         Get
             Return _FormProperty.Attributes("MaxLength").Value
         End Get
     End Property
 
-    Public ReadOnly Property Scale As Integer
+    Public ReadOnly Property Scale() As Integer
         Get
             Return _FormProperty.Attributes("Scale").Value
         End Get
     End Property
 
-    Public ReadOnly Property Precision As Integer
+    Public ReadOnly Property Precision() As Integer
         Get
             Return _FormProperty.Attributes("Precision").Value
         End Get
     End Property
 
-    Public ReadOnly Property Name As String
+    Public ReadOnly Property Name() As String
         Get
             Return _FormProperty.Attributes("Name").Value
         End Get
     End Property
 
-    Public ReadOnly Property nType As String
+    Public ReadOnly Property nType() As String
         Get
             Return _FormProperty.Attributes("Type").Value
         End Get
@@ -49,12 +54,12 @@ Public Class FormProperty
 #End Region
 
     Private _Key As Boolean
-    Public Property Key As Boolean
+    Public Property Key() As Boolean
         Get
             Return _Key
         End Get
-        Set(value As Boolean)
-            _Key = value            
+        Set(ByVal value As Boolean)
+            _Key = value
         End Set
     End Property
 
@@ -97,6 +102,7 @@ Public Class FormProperty
         With mymemberproperty
 
             .Name = Name
+            '.Type = New CodeTypeReference(GetType(System.String))
             PropType(mymemberproperty)
             .Attributes = MemberAttributes.Public + MemberAttributes.Final
 
@@ -168,50 +174,71 @@ Public Class FormProperty
             .GetStatements.Add(New CodeSnippetExpression(String.Format("return _{0}", Name)))
 
             With .SetStatements
-                .Add(Snippet("if not(value is nothing) then"))
-                .Add(Snippet("  try"))
-                Select Case nType
-                    Case "Edm.String"
-                        prop.Type = New CodeTypeReference(GetType(System.String))
-                        .Add(Snippet("      mybase.validate(""{0}.{1}"", value, {2})", _EntityName, Name, MaxLength))
+                If Not IsReadOnly() Then
+                    .Add(Snippet("if not(value is nothing) then"))
+                    .Add(Snippet("  try"))
+                    Select Case nType
+                        Case "Edm.String"
+                            prop.Type = New CodeTypeReference(GetType(System.String))
+                            .Add(Snippet("      mybase.validate(""{0}"", value, {1})", DisplayName, MaxLength))
 
-                    Case "Edm.Decimal"
-                        prop.Type = New CodeTypeReference("nullable(of decimal)")
-                        .Add(Snippet("      mybase.validate(""{0}.{1}"", value, {2},{3})", _EntityName, Name, Precision, Scale))
+                        Case "Edm.Decimal"
+                            prop.Type = New CodeTypeReference("nullable(of decimal)")
+                            .Add(Snippet("      mybase.validate(""{0}"", value, {1},{2})", DisplayName, Precision, Scale))
 
 
-                    Case "Edm.DateTimeOffset"
-                        prop.Type = New CodeTypeReference("nullable (of DateTimeOffset)")
-                        .Add(Snippet("      mybase.validate(""{0}.{1}"", value, true)", _EntityName, Name))
+                        Case "Edm.DateTimeOffset"
+                            prop.Type = New CodeTypeReference("nullable (of DateTimeOffset)")
+                            .Add(Snippet("      mybase.validate(""{0}"", value, true)", DisplayName))
 
-                    Case "Edm.Int64"
-                        prop.Type = New CodeTypeReference("nullable (of int64)")
-                        .Add(Snippet("      mybase.validate(""{0}.{1}"", value)", _EntityName, Name))
+                        Case "Edm.Int64"
+                            prop.Type = New CodeTypeReference("nullable (of int64)")
+                            .Add(Snippet("      mybase.validate(""{0}"", value)", DisplayName))
 
-                End Select
-                .Add(Snippet("  catch ex as exception"))
-                .Add(Snippet("      Connection.LastError = ex"))
-                .Add(Snippet("      Exit Property"))
-                .Add(Snippet("  end try"))
+                    End Select
 
-                .Add(Snippet("  _IsSet{0} = True", Name))
-                .Add(Snippet("  If loading Then"))
-                .Add(Snippet("    _{0} = Value", Name))
-                .Add(Snippet("  Else"))
+                    .Add(Snippet("  catch ex as exception"))
+                    .Add(Snippet("      Connection.LastError = ex"))
+                    .Add(Snippet("      Exit Property"))
+                    .Add(Snippet("  end try"))
 
-                .Add(Snippet("      if not _{0} = value then", Name))
-                .Add(Snippet("          loading = true"))
-                .Add(Snippet("          Connection.RaiseStartData()"))                
-                .Add(Snippet("          Dim cn As New oDataPUT(Me, PropertyStream(""{0}"", Value), AddressOf HandlesEdit)", Name))
-                .Add(Snippet("          loading = false"))
-                .Add(Snippet("          If Connection.LastError is nothing Then"))
-                .Add(Snippet("              _{0} = Value", Name))
-                .Add(Snippet("          End If"))
-                .Add(Snippet("      end if"))
+                    .Add(Snippet("  _IsSet{0} = True", Name))
+                    .Add(Snippet("  If loading Then"))
+                    .Add(Snippet("    _{0} = Value", Name))
+                    .Add(Snippet("  Else"))
+                    .Add(Snippet("      if not _{0} = value then", Name))
+                    .Add(Snippet("          loading = true"))
+                    .Add(Snippet("          Connection.RaiseStartData()"))
+                    .Add(Snippet("          Dim cn As New oDataPUT(Me, PropertyStream(""{0}"", Value), AddressOf HandlesEdit)", Name))
+                    .Add(Snippet("          loading = false"))
+                    .Add(Snippet("          If Connection.LastError is nothing Then"))
+                    .Add(Snippet("              _{0} = Value", Name))
+                    .Add(Snippet("          End If"))
+                    .Add(Snippet("      end if"))
+                    .Add(Snippet("  end if"))
+                    .Add(Snippet("end if"))
 
-                .Add(Snippet("  end if"))
+                Else
+                    Select Case nType
+                        Case "Edm.String"
+                            prop.Type = New CodeTypeReference(GetType(System.String))                            
 
-                .Add(Snippet("end if"))
+                        Case "Edm.Decimal"
+                            prop.Type = New CodeTypeReference("nullable(of decimal)")
+
+                        Case "Edm.DateTimeOffset"
+                            prop.Type = New CodeTypeReference("nullable (of DateTimeOffset)")                            
+
+                        Case "Edm.Int64"
+                            prop.Type = New CodeTypeReference("nullable (of int64)")                            
+
+                    End Select
+
+                    .Add(Snippet("if not(value is nothing) then"))
+                    .Add(Snippet("  _{0} = Value", Name))
+                    .Add(Snippet("end if"))
+
+                End If
 
             End With
 
@@ -236,11 +263,11 @@ Public Class FormProperty
         End With
     End Sub
 
-    Private Function Snippet(str As String) As CodeSnippetExpression
+    Private Function Snippet(ByVal str As String) As CodeSnippetExpression
         Return New CodeSnippetExpression(str)
     End Function
 
-    Private Function Snippet(str As String, ParamArray Args() As String) As CodeSnippetExpression
+    Private Function Snippet(ByVal str As String, ByVal ParamArray Args() As String) As CodeSnippetExpression
         Return New CodeSnippetExpression(String.Format(str, Args))
     End Function
 
@@ -257,16 +284,20 @@ Public Class FormProperty
         End If
     End Function
 
-    Private Function IsReadOnly() As Boolean
+    Public Function IsReadOnly() As Boolean
         Dim tf As XmlNode = ThisColumn()
         If tf Is Nothing Then
             Return False
         Else
-            Return Not tf.Attributes("readonly") Is Nothing
+            If Not _Parent.Updatable Then
+                Return True
+            Else
+                Return Not tf.Attributes("readonly") Is Nothing
+            End If
         End If
     End Function
 
-    Private Function IsHidden() As Boolean
+    Public Function IsHidden() As Boolean
         Dim tf As XmlNode = ThisColumn()
         If tf Is Nothing Then
             Return False
@@ -275,7 +306,7 @@ Public Class FormProperty
         End If
     End Function
 
-    Private Function IsMandatory() As Boolean
+    Public Function IsMandatory() As Boolean
         Dim tf As XmlNode = ThisColumn()
         If tf Is Nothing Then
             Return False
@@ -284,7 +315,7 @@ Public Class FormProperty
         End If
     End Function
 
-    Private Function Pos() As Integer
+    Public Function Pos() As Integer
         Dim tf As XmlNode = ThisColumn()
         If tf Is Nothing Then
             Return 0
