@@ -54,7 +54,7 @@ Public Class FormProperty
             Return _Key
         End Get
         Set(value As Boolean)
-            _Key = value
+            _Key = value            
         End Set
     End Property
 
@@ -169,49 +169,54 @@ Public Class FormProperty
 
             With .SetStatements
                 .Add(Snippet("if not(value is nothing) then"))
+                .Add(Snippet("  try"))
                 Select Case nType
                     Case "Edm.String"
                         prop.Type = New CodeTypeReference(GetType(System.String))
-                        .Add(Snippet("mybase.validate(""{0}.{1}"", value, {2})", _EntityName, Name, MaxLength))
+                        .Add(Snippet("      mybase.validate(""{0}.{1}"", value, {2})", _EntityName, Name, MaxLength))
 
                     Case "Edm.Decimal"
                         prop.Type = New CodeTypeReference("nullable(of decimal)")
-                        .Add(Snippet("mybase.validate(""{0}.{1}"", value, {2},{3})", _EntityName, Name, Precision, Scale))
+                        .Add(Snippet("      mybase.validate(""{0}.{1}"", value, {2},{3})", _EntityName, Name, Precision, Scale))
 
 
                     Case "Edm.DateTimeOffset"
                         prop.Type = New CodeTypeReference("nullable (of DateTimeOffset)")
-                        .Add(Snippet("mybase.validate(""{0}.{1}"", value, true)", _EntityName, Name))
+                        .Add(Snippet("      mybase.validate(""{0}.{1}"", value, true)", _EntityName, Name))
 
                     Case "Edm.Int64"
                         prop.Type = New CodeTypeReference("nullable (of int64)")
-                        .Add(Snippet("mybase.validate(""{0}.{1}"", value)", _EntityName, Name))
+                        .Add(Snippet("      mybase.validate(""{0}.{1}"", value)", _EntityName, Name))
 
                 End Select
+                .Add(Snippet("  catch ex as exception"))
+                .Add(Snippet("      Connection.LastError = ex"))
+                .Add(Snippet("      Exit Property"))
+                .Add(Snippet("  end try"))
 
-                .Add(Snippet("_IsSet{0} = True", Name))
-                .Add(Snippet("If loading Then"))
+                .Add(Snippet("  _IsSet{0} = True", Name))
+                .Add(Snippet("  If loading Then"))
                 .Add(Snippet("    _{0} = Value", Name))
-                .Add(Snippet("Else"))
+                .Add(Snippet("  Else"))
 
-                .Add(Snippet("  if not _{0} = value then", Name))        
-                .Add(Snippet("      loading = true"))
-                .Add(Snippet("      Dim cn As New oDataPUT(Me, PropertyStream(""{0}"", Value), AddressOf HandlesEdit)", Name))
-                .Add(Snippet("      loading = false"))
-                .Add(Snippet("      If Not lastResult is nothing Then"))
-                .Add(Snippet("          Throw lastResult"))
-                .Add(Snippet("      Else"))
-                .Add(Snippet("          _{0} = Value", Name))
-                .Add(Snippet("      End If"))
+                .Add(Snippet("      if not _{0} = value then", Name))
+                .Add(Snippet("          loading = true"))
+                .Add(Snippet("          Connection.RaiseStartData()"))                
+                .Add(Snippet("          Dim cn As New oDataPUT(Me, PropertyStream(""{0}"", Value), AddressOf HandlesEdit)", Name))
+                .Add(Snippet("          loading = false"))
+                .Add(Snippet("          If Connection.LastError is nothing Then"))
+                .Add(Snippet("              _{0} = Value", Name))
+                .Add(Snippet("          End If"))
+                .Add(Snippet("      end if"))
 
                 .Add(Snippet("  end if"))
 
                 .Add(Snippet("end if"))
 
-                .Add(Snippet("end if"))
-
             End With
+
         End With
+
     End Sub
 
     Public Sub XMLType(ByRef Statements As CodeStatementCollection)

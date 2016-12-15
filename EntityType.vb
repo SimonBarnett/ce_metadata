@@ -51,34 +51,6 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
         End With
     End Function
 
-    'Private Function Cstor() As CodeMemberMethod
-    '    Dim CodeConstructor As New CodeConstructor
-    '    With CodeConstructor
-    '        .Attributes = MemberAttributes.Public
-    '        With .Parameters
-    '            .Add(New CodeParameterDeclarationExpression("System.String", "Server"))
-    '            .Add(New CodeParameterDeclarationExpression("System.String", "Environment"))
-    '        End With
-    '        With .Statements
-    '            .Add(New CodeSnippetExpression("me.Server = Server"))
-    '            .Add(New CodeSnippetExpression("me.Environment = Environment"))
-    '            For Each navigationProperty As NavigationProperty In Me.NavigationProperty.Values
-    '                .Add(
-    '                    New CodeSnippetExpression(
-    '                        String.Format(
-    '                            "_{0} = new QUERY_{1}(me)",
-    '                            navigationProperty.Name,
-    '                            navigationProperty.nType
-    '                        )
-    '                    )
-    '                )
-    '            Next
-    '        End With
-
-    '        Return CodeConstructor
-    '    End With
-    'End Function
-
     Private Function Cstor3() As CodeMemberMethod
         Dim CodeConstructor As New CodeConstructor
         With CodeConstructor
@@ -262,17 +234,15 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
 
             With .Statements
                 .Add(Snippet("If Not e.WebException is nothing Then"))
-                .Add(Snippet("    lastResult = e.InterfaceException"))
-                .Add(Snippet("Else"))
-                .Add(Snippet("    lastResult = nothing"))
+                .Add(Snippet("    Connection.LastError = e.InterfaceException"))
+                .Add(Snippet("Else"))                
                 .Add(Snippet("    dim obj as {0} = JsonConvert.DeserializeObject(Of {0})(e.StreamReader.ReadToEnd)", Name))
                 .Add(Snippet("    With obj"))
                 For Each FormProperty As FormProperty In Me.Values
-                    .Add(Snippet("    _{0} = .{0}", FormProperty.Name))
+                    .Add(Snippet("      _{0} = .{0}", FormProperty.Name))
                 Next
                 .Add(Snippet("    end with"))
                 .Add(Snippet("End If"))
-                '.Add(Snippet("editing = false"))
 
             End With
 
@@ -379,7 +349,7 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
                 End With
                 .Add(pmem)
                 .Add(PrivateBindingSourceProperty)
-                .Add(LastResultProperty)
+                '.Add(LastResultProperty)
                 .Add(OverridesQueryEntityName)
                 .Add(OverridesParent)
                 .Add(OverridesObjectType)
@@ -407,15 +377,15 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
         Return pmem
     End Function
 
-    Private Function LastResultProperty() As CodeMemberField
-        Dim pmem As New CodeMemberField
-        With pmem
-            .Name = String.Format("_lastResult", "")
-            .Attributes = MemberAttributes.Private + MemberAttributes.Final
-            .Type = New CodeTypeReference(Name)
-        End With
-        Return pmem
-    End Function
+    'Private Function LastResultProperty() As CodeMemberField
+    '    Dim pmem As New CodeMemberField
+    '    With pmem
+    '        .Name = String.Format("_lastResult", "")
+    '        .Attributes = MemberAttributes.Private + MemberAttributes.Final
+    '        .Type = New CodeTypeReference(Name)
+    '    End With
+    '    Return pmem
+    'End Function
 
     Private Function OverridesQueryEntityName() As CodeMemberProperty
         Dim mymemberproperty As New CodeMemberProperty
@@ -567,54 +537,23 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
 
             With .Statements
                 .Add(Snippet("If Not e.WebException is nothing Then"))
-                .Add(Snippet("    _lastResult = nothing"))
-                .Add(Snippet("    throw e.webexception"))
+                .Add(Snippet("    Connection.LastError = e.InterfaceException"))                
                 .Add(Snippet("Else"))
                 .Add(Snippet("    dim obj as {0} = JsonConvert.DeserializeObject(Of {0})(e.StreamReader.ReadToEnd)", Name))
-                .Add(Snippet("    With obj"))
-                '.Add(Snippet("      .Server = Connection.Settings.Server"))
-                '.Add(Snippet("      .Environment = Connection.Settings.Environment"))
-                .Add(Snippet("      if not(_Parent is nothing) then"))
+                .Add(Snippet("    With TryCast(BindingSource.Current, {0})", Name))
                 .Add(Snippet("      .Parent = Parent"))
-                .Add(Snippet("      end if"))
                 .Add(Snippet("      .loading = false"))
+                For Each FormProperty As FormProperty In Me.Values
+                    .Add(Snippet("      .{0} = obj.{0}", FormProperty.Name))
+                Next
                 .Add(Snippet("    end with"))
-                .Add(Snippet("    _value.add(obj)"))
-                .Add(Snippet("    _lastResult = obj"))
-                .Add(Snippet("End If"))
-                .Add(Snippet("Adding = False"))
+                .Add(Snippet("End If"))                
 
             End With
 
         End With
         Return ret
     End Function
-
-    'Public Function OverloadsAdd() As CodeMemberMethod
-    '    Dim ret As New CodeMemberMethod
-    '    With ret
-    '        .Name = "Add"
-    '        .Attributes = MemberAttributes.Overloaded + MemberAttributes.Public + MemberAttributes.Final
-    '        .ReturnType = New CodeTypeReference(Name)
-    '        Dim p As New CodeParameterDeclarationExpression
-    '        With p
-    '            .Direction = FieldDirection.Ref
-    '            .Name = "obj"
-    '            .Type = New CodeTypeReference(Name)
-    '        End With
-    '        .Parameters.Add(p)
-
-    '        With .Statements
-    '            .Add(Snippet("MyBase.Add(obj, AddressOf HandlesAdd)"))
-    '            '.Add(Snippet("while adding"))
-    '            '.Add(Snippet("  Threading.Thread.Sleep(10)"))
-    '            '.Add(Snippet("End While"))
-    '            .Add(Snippet("return _LastResult"))
-    '        End With
-
-    '    End With
-    '    Return ret
-    'End Function
 
     Public Function OverloadsRemove() As CodeMemberMethod
         Dim ret As New CodeMemberMethod
@@ -783,7 +722,7 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
                     .Add(Snippet("if _{0}.value.count > 0 then", navigationProperty.Name))
                     .Add(Snippet("  for each itm as {0} in _{1}.Value", navigationProperty.nType, navigationProperty.Name))
                     .Add(Snippet("    itm.toXML(xw,""{0}"")", navigationProperty.Name))
-                    .Add(Snippet("    next"))
+                    .Add(Snippet("  next"))
                     .Add(Snippet("end if"))
                 Next
 
