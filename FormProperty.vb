@@ -109,20 +109,54 @@ Public Class FormProperty
             With .CustomAttributes
                 .Add( _
                     New CodeAttributeDeclaration( _
-                        "tab", _
-                        New CodeAttributeArgument( _
-                            New CodePrimitiveExpression(tab) _
-                        ) _
-                    ) _
-                )
-                .Add( _
-                    New CodeAttributeDeclaration( _
                         "DisplayName", _
                         New CodeAttributeArgument( _
                             New CodePrimitiveExpression(DisplayName) _
                         ) _
                     ) _
                 )
+
+                .Add( _
+                    New CodeAttributeDeclaration( _
+                        "nType", _
+                        New CodeAttributeArgument( _
+                            New CodePrimitiveExpression(nType) _
+                        ) _
+                    ) _
+                )
+                Select Case nType
+                    Case "Edm.Decimal"
+                        .Add( _
+                            New CodeAttributeDeclaration( _
+                                "Scale", _
+                                New CodeAttributeArgument( _
+                                    New CodePrimitiveExpression(Scale) _
+                                ) _
+                            ) _
+                        )
+
+                        .Add( _
+                            New CodeAttributeDeclaration( _
+                                "Precision", _
+                                New CodeAttributeArgument( _
+                                    New CodePrimitiveExpression(Precision) _
+                                ) _
+                            ) _
+                        )
+
+                    Case Else
+
+                End Select
+
+                .Add( _
+                    New CodeAttributeDeclaration( _
+                        "tab", _
+                        New CodeAttributeArgument( _
+                            New CodePrimitiveExpression(tab) _
+                        ) _
+                    ) _
+                )
+
                 .Add( _
                     New CodeAttributeDeclaration( _
                         "Pos", _
@@ -163,6 +197,27 @@ Public Class FormProperty
                         ) _
                     )
                 End If
+
+                .Add( _
+                    New CodeAttributeDeclaration( _
+                        "twodBarcode", _
+                        New CodeAttributeArgument( _
+                            New CodePrimitiveExpression(twodBarcode) _
+                        ) _
+                    ) _
+                )
+
+                If Not Help() Is Nothing Then
+                    .Add( _
+                        New CodeAttributeDeclaration( _
+                            "help", _
+                            New CodeAttributeArgument( _
+                                New CodePrimitiveExpression(Help) _
+                            ) _
+                        ) _
+                    )
+                End If
+
             End With
         End With
 
@@ -173,66 +228,63 @@ Public Class FormProperty
         With prop
             .GetStatements.Add(New CodeSnippetExpression(String.Format("return _{0}", Name)))
 
+            Select Case nType
+                Case "Edm.String"
+                    prop.Type = New CodeTypeReference(GetType(System.String))
+
+                Case "Edm.Decimal"
+                    prop.Type = New CodeTypeReference("nullable(of decimal)")
+
+                Case "Edm.DateTimeOffset"
+                    prop.Type = New CodeTypeReference("nullable (of DateTimeOffset)")
+
+                Case "Edm.Int64"
+                    prop.Type = New CodeTypeReference("nullable (of int64)")
+
+            End Select
+
             With .SetStatements
                 If Not IsReadOnly() Then
-                    .Add(Snippet("if not(value is nothing) then"))
-                    .Add(Snippet("  try"))
-                    Select Case nType
-                        Case "Edm.String"
-                            prop.Type = New CodeTypeReference(GetType(System.String))
-                            .Add(Snippet("      mybase.validate(""{0}"", value, {1})", DisplayName, MaxLength))
+                    .Add(Snippet("if value is nothing then Exit Property"))
+                    .Add(Snippet("if not mybase.validate(""{0}"", value, ""{1}"") then Exit Property", DisplayName, Regex))
 
-                        Case "Edm.Decimal"
-                            prop.Type = New CodeTypeReference("nullable(of decimal)")
-                            .Add(Snippet("      mybase.validate(""{0}"", value, {1},{2})", DisplayName, Precision, Scale))
+                    'Select Case nType
+                    '    Case "Edm.String"
+                    '        prop.Type = New CodeTypeReference(GetType(System.String))
+                    '        .Add(Snippet("if not mybase.validate(""{0}"", value, {1}) then Exit Property", DisplayName, MaxLength))
+
+                    '    Case "Edm.Decimal"
+                    '        prop.Type = New CodeTypeReference("nullable(of decimal)")
+                    '        .Add(Snippet("if not mybase.validate(""{0}"", value, {1},{2}) then Exit Property", DisplayName, Precision, Scale))
 
 
-                        Case "Edm.DateTimeOffset"
-                            prop.Type = New CodeTypeReference("nullable (of DateTimeOffset)")
-                            .Add(Snippet("      mybase.validate(""{0}"", value, true)", DisplayName))
+                    '    Case "Edm.DateTimeOffset"
+                    '        prop.Type = New CodeTypeReference("nullable (of DateTimeOffset)")
+                    '        .Add(Snippet("if not mybase.validate(""{0}"", value, true) then Exit Property", DisplayName))
 
-                        Case "Edm.Int64"
-                            prop.Type = New CodeTypeReference("nullable (of int64)")
-                            .Add(Snippet("      mybase.validate(""{0}"", value)", DisplayName))
+                    '    Case "Edm.Int64"
+                    '        prop.Type = New CodeTypeReference("nullable (of int64)")
+                    '        .Add(Snippet("if not mybase.validate(""{0}"", value) then Exit Property", DisplayName))
 
-                    End Select
+                    'End Select
 
-                    .Add(Snippet("  catch ex as exception"))
-                    .Add(Snippet("      Connection.LastError = ex"))
-                    .Add(Snippet("      Exit Property"))
-                    .Add(Snippet("  end try"))
-
-                    .Add(Snippet("  _IsSet{0} = True", Name))
-                    .Add(Snippet("  If loading Then"))
-                    .Add(Snippet("    _{0} = Value", Name))
-                    .Add(Snippet("  Else"))
-                    .Add(Snippet("      if not _{0} = value then", Name))
-                    .Add(Snippet("          loading = true"))
-                    .Add(Snippet("          Connection.RaiseStartData()"))
-                    .Add(Snippet("          Dim cn As New oDataPUT(Me, PropertyStream(""{0}"", Value), AddressOf HandlesEdit)", Name))
-                    .Add(Snippet("          loading = false"))
-                    .Add(Snippet("          If Connection.LastError is nothing Then"))
-                    .Add(Snippet("              _{0} = Value", Name))
-                    .Add(Snippet("          End If"))
-                    .Add(Snippet("      end if"))
-                    .Add(Snippet("  end if"))
+                    .Add(Snippet("_IsSet{0} = True", Name))
+                    .Add(Snippet("If loading Then"))
+                    .Add(Snippet("  _{0} = Value", Name))
+                    .Add(Snippet("Else"))
+                    .Add(Snippet("    if not _{0} = value then", Name))                    
+                    .Add(Snippet("        Connection.RaiseStartData()"))
+                    .Add(Snippet("        loading = true"))
+                    .Add(Snippet("        Dim cn As New oDataPUT(Me, PropertyStream(""{0}"", Value), AddressOf HandlesEdit)", Name))
+                    .Add(Snippet("        loading = false"))
+                    .Add(Snippet("        If Connection.LastError is nothing Then"))
+                    .Add(Snippet("            _{0} = Value", Name))
+                    .Add(Snippet("        End If"))
+                    .Add(Snippet("    end if"))
                     .Add(Snippet("end if"))
 
                 Else
-                    Select Case nType
-                        Case "Edm.String"
-                            prop.Type = New CodeTypeReference(GetType(System.String))                            
 
-                        Case "Edm.Decimal"
-                            prop.Type = New CodeTypeReference("nullable(of decimal)")
-
-                        Case "Edm.DateTimeOffset"
-                            prop.Type = New CodeTypeReference("nullable (of DateTimeOffset)")                            
-
-                        Case "Edm.Int64"
-                            prop.Type = New CodeTypeReference("nullable (of int64)")                            
-
-                    End Select
 
                     .Add(Snippet("if not(value is nothing) then"))
                     .Add(Snippet("  _{0} = Value", Name))
@@ -263,13 +315,7 @@ Public Class FormProperty
         End With
     End Sub
 
-    Private Function Snippet(ByVal str As String) As CodeSnippetExpression
-        Return New CodeSnippetExpression(str)
-    End Function
-
-    Private Function Snippet(ByVal str As String, ByVal ParamArray Args() As String) As CodeSnippetExpression
-        Return New CodeSnippetExpression(String.Format(str, Args))
-    End Function
+#Region "Functions from the Form Definition feed"
 
     Public Function DisplayName() As String
         Dim tf As XmlNode = ThisColumn()
@@ -280,6 +326,62 @@ Public Class FormProperty
                 Return Name
             Else
                 Return tf.Attributes("title").Value
+            End If
+        End If
+    End Function
+
+    Public Function Regex() As String
+        Dim tf As XmlNode = ThisColumn()
+        If tf Is Nothing Then
+            Return DefaultRegex()
+        Else
+            If tf.Attributes("Regex") Is Nothing Then
+                Return DefaultRegex()
+            Else
+                Return tf.Attributes("Regex").Value
+            End If
+        End If
+    End Function
+
+    Public Function Help() As String
+        Dim tf As XmlNode = ThisColumn()
+        If tf Is Nothing Then
+            Return Nothing
+        Else
+            If tf.Attributes("help") Is Nothing Then
+                Return Nothing
+            Else
+                Return tf.Attributes("help").Value
+            End If
+        End If
+    End Function
+
+    Private Function DefaultRegex() As String        
+        Select Case nType
+            Case "Edm.Decimal"
+                Return "^[0-9\.\-]+$"
+
+            Case "Edm.DateTimeOffset"
+                Return "^.*$"
+
+            Case "Edm.Int64"
+                Return "^[0-9\-]+$"
+
+            Case Else '"Edm.String"
+                Return "^.{0," & MaxLength & "}$"
+
+        End Select
+    End Function
+
+    Public Function twodBarcode() As String
+        Dim tf As XmlNode = ThisColumn()
+        If tf Is Nothing Then
+            Return Name
+        Else
+            If tf.Attributes("2dBarcode") Is Nothing Then
+                Return Name
+            Else
+                Return tf.Attributes("2dBarcode").Value
             End If
         End If
     End Function
@@ -337,5 +439,7 @@ Public Class FormProperty
             ) _
         )
     End Function
+
+#End Region
 
 End Class

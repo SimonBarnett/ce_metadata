@@ -195,8 +195,9 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
                         Case Else
                             i += 1
                     End Select
-
-                    .Add(FormProperty.IsSetProperty)
+                    If Not FormProperty.IsReadOnly Then
+                        .Add(FormProperty.IsSetProperty)
+                    End If
                     .Add(FormProperty.PrivateCodeMemberProperty)
                     .Add(FormProperty.PublicCodeMemberProperty(tab))
 
@@ -716,14 +717,16 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
                 Next
 
                 For Each FormProperty As FormProperty In Me.Values
-                    .Add(Snippet("if _IsSet{0} then", FormProperty.Name))
-                    .Add(Snippet("  .WriteStartElement(""field"")"))
-                    .Add(Snippet("  .WriteAttributeString(""name"", ""{0}"")", FormProperty.Name))
-                    .Add(Snippet("  .WriteAttributeString(""value"", me.{0})", FormProperty.Name))
-                    FormProperty.XMLType(ret.Statements)
+                    If Not FormProperty.IsReadOnly Then
+                        .Add(Snippet("if _IsSet{0} then", FormProperty.Name))
+                        .Add(Snippet("  .WriteStartElement(""field"")"))
+                        .Add(Snippet("  .WriteAttributeString(""name"", ""{0}"")", FormProperty.Name))
+                        .Add(Snippet("  .WriteAttributeString(""value"", me.{0})", FormProperty.Name))
+                        FormProperty.XMLType(ret.Statements)
 
-                    .Add(Snippet("  .WriteEndElement"))
-                    .Add(Snippet("end if"))
+                        .Add(Snippet("  .WriteEndElement"))
+                        .Add(Snippet("end if"))
+                    End If
                 Next
 
                 For Each navigationProperty As NavigationProperty In Me.NavigationProperty.Values
@@ -823,14 +826,6 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
 
     '    Return mymemberproperty
     'End Function
-
-    Private Function Snippet(ByVal str As String) As CodeSnippetExpression
-        Return New CodeSnippetExpression(str)
-    End Function
-
-    Private Function Snippet(ByVal str As String, ByVal ParamArray Args() As String) As CodeSnippetExpression
-        Return New CodeSnippetExpression(String.Format(str, Args))
-    End Function
 
     Private Function EnumMember(ByVal name As String, ByVal id As Integer) As CodeMemberField
         Dim mem As New CodeMemberField

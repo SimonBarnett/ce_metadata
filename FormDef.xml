@@ -7,25 +7,30 @@
   <column name="DUTYPERCENTTYPE" title="Shipping Cost Type" pos="82" />
   <column name="EFAMILYDES" title="Family Desc (Lang 2)" pos="30" />
   <column name="FAMILY" title="Family (ID)" pos="40" hidden="" />
-  <column name="FAMILYDESC" title="Family Description" pos="25" />
+  <column name="FAMILYDESC" title="Family Description" pos="25" help="Some help."/>
   <column name="FAMILYNAME" title="Family" pos="20" mandatory="" />
+  <column name="FAMILYTYPE" title="Family Type (ID)" pos="99" hidden="" />
   <column name="FORECAST" title="Sales/Order Target?" pos="100" />
   <column name="FTCODE" title="Family Type Code" pos="50" />
   <column name="FTNAME" title="Family Type Descrip." pos="52" readonly="" />
   <column name="INACTIVE" title="Not in Use" pos="190" />
   <column name="ISMFAMILY" title="Top-Level?" pos="150" />
   <column name="METERFLAG" title="Meter?" pos="200" />
+  <column name="MFAMILY" title="Top-Level Family" pos="99" hidden="" />
   <column name="MFAMILYDES" title="Family Description" pos="170" readonly="" />
   <column name="MFAMILYNAME" title="Top-Level Family" pos="165" />
   <column name="NEGBALFLAG" title="Block Neg. Balance?" pos="90" />
+  <column name="PART" title="Sample Part (ID)" pos="99" hidden="" />
   <column name="PARTDES" title="Part Description" pos="120" readonly="" />
   <column name="PARTNAME" title="Sample Part" pos="110" />
   <column name="PROJPROCESS" title="Production for Proj?" pos="35" />
   <column name="SELLFLAG" title="Sold Part?" pos="85" />
   <column name="SERIALMONTHEXPIRY" title="Monthly Expir-Pick" pos="145" />
+  <column name="STORAGETYPE" title="Put Strategy (ID)" pos="99" hidden="" />
   <column name="STORAGETYPECODE" title="Put Strategy Code" pos="130" />
   <column name="STORAGETYPEDES" title="Put Strategy Descrip" pos="140" readonly="" />
   <column name="TECHFLAG" title="Work Hours?" pos="31" />
+  <column name="TECHNICIAN" title="Technician (ID)" pos="99" hidden="" />
   <column name="TECHNICIANLOGIN" title="Technician in Charge" pos="40" />
   <column name="TYPE" title="Type" pos="99" hidden="" />
   <ChildForms>
@@ -34,6 +39,7 @@
       <column name="PART" title="Part (ID)" pos="20" hidden="" />
       <column name="PARTDES" title="Part Description" pos="50" />
       <column name="PARTNAME" title="Part Number" pos="10" />
+      <column name="PARTSTAT" title="Part Status (ID)" pos="99" hidden="" />
       <column name="STATDES" title="Part Status" pos="60" />
       <column name="TYPE" title="Type (P/R/O)" pos="20" />
     </form>
@@ -41,6 +47,7 @@
   <ChildForms>
     <form name="FAMILYMALF" title="Malfunction Codes for Family" ins=" " upd="N" del=" ">
       <column name="FAMILY" title="Family (ID)" pos="10" hidden="" />
+      <column name="MALF" title="Malfunction Code(ID)" pos="20" hidden="" />
       <column name="MALFCODE" title="Malfunction Code" pos="30" />
       <column name="MALFDES" title="Malf. Description" pos="40" readonly="" />
     </form>
@@ -49,16 +56,20 @@
     <form name="FAMILYSERVTYPES" title="Service Terms per Family" ins=" " upd="N" del=" ">
       <column name="FAMILY" title="Family (ID)" pos="20" hidden="" />
       <column name="FLAG" title="Billable?" pos="30" />
+      <column name="NOCHARGECODE" title="Billing Exempt'n(ID)" pos="99" hidden="" />
       <column name="NOCHARGENAME" title="Billing Exempt Type" pos="40" />
       <column name="SERVTCODE" title="Service Terms (Code)" pos="10" />
       <column name="SERVTDES" title="Service Terms" pos="12" readonly="" />
+      <column name="SERVTYPE" title="Service Terms (ID)" pos="10" hidden="" />
     </form>
   </ChildForms>
   <ChildForms>
     <form name="FAMILYREQLABANALYSES" title="Required Analyses" ins=" " upd="N" del=" ">
+      <column name="ANALYSIS" title="Analysis (ID)" pos="99" hidden="" />
       <column name="ANALYSISCODE" title="Analysis Code" pos="10" mandatory="" />
       <column name="ANALYSISDES" title="Analysis Description" pos="15" readonly="" />
       <column name="MAXVALUE" title="Maximum Value" pos="30" />
+      <column name="METHOD" title="Method (ID)" pos="100" hidden="" />
       <column name="METHODNAME" title="Method of Analysis" pos="18" />
       <column name="MINVALUE" title="Minimum Value" pos="20" />
       <column name="PRINTFLAG" title="Display in Printout?" pos="40" />
@@ -69,6 +80,7 @@
           <column name="FROMVAL" title="Minimum QualityValue" pos="50" />
           <column name="NOTVALID" title="Unacceptable?" pos="30" />
           <column name="QRANKCODE" title="Quality Code" pos="40" />
+          <column name="QUALITYRANK" title="Quality Level (ID)" pos="99" hidden="" />
           <column name="REQANALYSIS" title="Required Analysis-ID" pos="99" hidden="" />
           <column name="RESCODE" title="Possible Result" pos="10" mandatory="" />
           <column name="TOVAL" title="Maximum QualityValue" pos="60" />

@@ -107,6 +107,9 @@
       <CustomToolNamespace>My</CustomToolNamespace>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
+    <None Include="sql\ColumProperty.sql" />
+    <None Include="sql\FormColumns.sql" />
+    <None Include="sql\FormDef.sql" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="dummymetadata.xml">
