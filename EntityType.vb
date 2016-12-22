@@ -367,6 +367,7 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
                 .Add(OverloadsDeserialise)
                 '.Add(OverloadsAdd)
                 .Add(HandlesAdd)
+                .Add(HandlesBeginAdd)
                 .Add(OverloadsRemove)
 
             End With
@@ -428,6 +429,7 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
                 .Add(New CodeSnippetExpression("_Parent = nothing"))
                 .Add(New CodeSnippetExpression(String.Format("_Name = ""{0}""", Name)))
                 .Add(Snippet("_BindingSource = new BindingSource"))
+                .Add(Snippet("AddHandler _BindingSource.AddingNew, AddressOf HandlesBeginAdd"))
 
                 Dim i As Integer = 0
                 .Add(Snippet("with ChildQuery"))
@@ -486,6 +488,7 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
                 .Add(New CodeSnippetExpression("_Parent = Parent"))
                 .Add(Snippet("_name = ""{0}_SUBFORM""", Name))
                 .Add(Snippet("_BindingSource = new BindingSource"))
+                .Add(Snippet("AddHandler _BindingSource.AddingNew, AddressOf HandlesBeginAdd"))
 
                 Dim i As Integer = 0
                 .Add(Snippet("with ChildQuery"))
@@ -548,14 +551,45 @@ Public Class EntityType : Inherits Dictionary(Of String, FormProperty)
                 .Add(Snippet("Else"))
                 .Add(Snippet("    dim obj as {0} = JsonConvert.DeserializeObject(Of {0})(e.StreamReader.ReadToEnd)", Name))
                 .Add(Snippet("    With TryCast(BindingSource.Current, {0})", Name))
-                .Add(Snippet("      .Parent = Parent"))
-                .Add(Snippet("      .loading = false"))
                 For Each FormProperty As FormProperty In Me.Values
                     .Add(Snippet("      .{0} = obj.{0}", FormProperty.Name))
                 Next
+                .Add(Snippet("      .loading = false"))
+
                 .Add(Snippet("    end with"))
                 .Add(Snippet("End If"))                
 
+            End With
+
+        End With
+        Return ret
+    End Function
+
+    Public Function HandlesBeginAdd() As CodeMemberMethod
+        Dim p As CodeParameterDeclarationExpression
+        Dim ret As New CodeMemberMethod
+        With ret
+            .Name = "HandlesBeginAdd"
+            .Attributes = MemberAttributes.Private
+
+            p = New CodeParameterDeclarationExpression
+            With p
+                .Direction = FieldDirection.In
+                .Name = "sender"
+                .Type = New CodeTypeReference(GetType(System.Object))
+            End With
+            .Parameters.Add(p)
+
+            p = New CodeParameterDeclarationExpression
+            With p
+                .Direction = FieldDirection.In
+                .Name = "e"
+                .Type = New CodeTypeReference("ComponentModel.AddingNewEventArgs")
+            End With
+            .Parameters.Add(p)
+
+            With .Statements
+                .Add(Snippet("e.NewObject = new {0}(me.Parent)", Name))
             End With
 
         End With
