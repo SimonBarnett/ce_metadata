@@ -1214,7 +1214,7 @@
     <Property Name="VARNAME" Type="Edm.String" MaxLength="16" />
     <Property Name="VARDES" Type="Edm.String" MaxLength="32" />
     <Property Name="OP" Type="Edm.String" MaxLength="1" />
-    <Property Name="COEF" Type="Edm.Decimal" Precision="12" />
+    <Property Name="COEF" Type="Edm.Decimal" Precision="12" Scale="0"/>
     <Property Name="VAR" Type="Edm.Int64" />
   </EntityType>
   <EntityType Name="ADCAINVLOGITEMS">
@@ -28250,9 +28250,9 @@
     <Property Name="SONPARTNAME" Type="Edm.String" MaxLength="22" />
     <Property Name="LOCATION" Type="Edm.String" MaxLength="10" />
     <Property Name="TOLOCATION" Type="Edm.String" MaxLength="10" />
-    <Property Name="X" Type="Edm.Decimal" Precision="10" />
-    <Property Name="Y" Type="Edm.Decimal" Precision="10" />
-    <Property Name="Z" Type="Edm.Decimal" Precision="10" />
+    <Property Name="X" Type="Edm.Decimal" Precision="10" Scale="0"/>
+    <Property Name="Y" Type="Edm.Decimal" Precision="10" Scale="0"/>
+    <Property Name="Z" Type="Edm.Decimal" Precision="10" Scale="0"/>
     <Property Name="LOADED" Type="Edm.String" MaxLength="1" />
   </EntityType>
   <EntityType Name="LOADMNFPARTMIG">
@@ -29089,9 +29089,9 @@
     <Property Name="LOCATION" Type="Edm.String" MaxLength="10" />
     <Property Name="TOLOCATION" Type="Edm.String" MaxLength="10" />
     <Property Name="QUANT" Type="Edm.Int64" />
-    <Property Name="X" Type="Edm.Decimal" Precision="10" />
-    <Property Name="Y" Type="Edm.Decimal" Precision="10" />
-    <Property Name="Z" Type="Edm.Decimal" Precision="10" />
+    <Property Name="X" Type="Edm.Decimal" Precision="10" Scale="0"/>
+    <Property Name="Y" Type="Edm.Decimal" Precision="10" Scale="0"/>
+    <Property Name="Z" Type="Edm.Decimal" Precision="10" Scale="0"/>
     <Property Name="SON" Type="Edm.Int64" />
   </EntityType>
   <EntityType Name="LOCATIONSINWARHS">
@@ -35713,10 +35713,10 @@
     <Property Name="SONREVNAME" Type="Edm.String" MaxLength="10" />
     <Property Name="SONQUANT" Type="Edm.Decimal" Precision="16" Scale="3" />
     <Property Name="UNITNAME" Type="Edm.String" MaxLength="3" />
-    <Property Name="COEF" Type="Edm.Decimal" Precision="13" />
+    <Property Name="COEF" Type="Edm.Decimal" Precision="13" Scale="0"/>
     <Property Name="OP" Type="Edm.String" MaxLength="1" />
     <Property Name="VARNAME" Type="Edm.String" MaxLength="16" />
-    <Property Name="SCRAP" Type="Edm.Decimal" Precision="13" />
+    <Property Name="SCRAP" Type="Edm.Decimal" Precision="13" Scale="2"/>
     <Property Name="ACTNAME" Type="Edm.String" MaxLength="16" />
     <Property Name="SONACTNAME" Type="Edm.String" MaxLength="16" />
     <Property Name="INFOONLY" Type="Edm.String" MaxLength="1" />
@@ -35741,10 +35741,10 @@
     <Property Name="SONREVNAME" Type="Edm.String" MaxLength="10" />
     <Property Name="FATQUANT" Type="Edm.Decimal" Precision="16" Scale="3" />
     <Property Name="SONQUANT" Type="Edm.Decimal" Precision="16" Scale="3" />
-    <Property Name="COEF" Type="Edm.Decimal" Precision="13" />
+    <Property Name="COEF" Type="Edm.Decimal" Precision="13" Scale="0"/>
     <Property Name="OP" Type="Edm.String" MaxLength="1" />
     <Property Name="VARNAME" Type="Edm.String" MaxLength="16" />
-    <Property Name="SCRAP" Type="Edm.Decimal" Precision="13" />
+    <Property Name="SCRAP" Type="Edm.Decimal" Precision="13" Scale="2"/>
     <Property Name="ACTNAME" Type="Edm.String" MaxLength="16" />
     <Property Name="SONACTNAME" Type="Edm.String" MaxLength="16" />
     <Property Name="INFOONLY" Type="Edm.String" MaxLength="1" />
@@ -36452,10 +36452,10 @@
     <Property Name="TILLDATE" Type="Edm.DateTimeOffset" />
     <Property Name="PARENTNAME" Type="Edm.String" MaxLength="15" />
     <Property Name="PARENTDES" Type="Edm.String" MaxLength="12" />
-    <Property Name="COEF" Type="Edm.Decimal" Precision="13" />
+    <Property Name="COEF" Type="Edm.Decimal" Precision="13" Scale="0"/>
     <Property Name="OP" Type="Edm.String" MaxLength="1" />
     <Property Name="VARNAME" Type="Edm.String" MaxLength="16" />
-    <Property Name="SCRAP" Type="Edm.Decimal" Precision="13" />
+    <Property Name="SCRAP" Type="Edm.Decimal" Precision="13" Scale="2"/>
     <Property Name="ACTNAME" Type="Edm.String" MaxLength="16" />
     <Property Name="SONACTNAME" Type="Edm.String" MaxLength="16" />
     <Property Name="INFOONLY" Type="Edm.String" MaxLength="1" />
@@ -44911,7 +44911,7 @@
     </Key>
     <Property Name="PARTNAME" Type="Edm.String" MaxLength="15" />
     <Property Name="PARTDES" Type="Edm.String" MaxLength="48" />
-    <Property Name="COEF" Type="Edm.Decimal" Precision="16" />
+    <Property Name="COEF" Type="Edm.Decimal" Precision="16" Scale="0"/>
     <Property Name="SON" Type="Edm.Int64" />
   </EntityType>
   <EntityType Name="RAWPARTCOST">
@@ -45597,10 +45597,10 @@
     <Property Name="SONREVNAME" Type="Edm.String" MaxLength="10" />
     <Property Name="SONQUANT" Type="Edm.Decimal" Precision="16" Scale="3" />
     <Property Name="UNITNAME" Type="Edm.String" MaxLength="3" />
-    <Property Name="COEF" Type="Edm.Decimal" Precision="13" />
+    <Property Name="COEF" Type="Edm.Decimal" Precision="13" Scale="0"/>
     <Property Name="OP" Type="Edm.String" MaxLength="1" />
     <Property Name="VARNAME" Type="Edm.String" MaxLength="16" />
-    <Property Name="SCRAP" Type="Edm.Decimal" Precision="13" />
+    <Property Name="SCRAP" Type="Edm.Decimal" Precision="13" Scale="2"/>
     <Property Name="ACTNAME" Type="Edm.String" MaxLength="16" />
     <Property Name="SONACTNAME" Type="Edm.String" MaxLength="16" />
     <Property Name="INFOONLY" Type="Edm.String" MaxLength="1" />
@@ -45687,10 +45687,10 @@
     <Property Name="SONREVNAME" Type="Edm.String" MaxLength="10" />
     <Property Name="SONQUANT" Type="Edm.Decimal" Precision="16" Scale="3" />
     <Property Name="UNITNAME" Type="Edm.String" MaxLength="3" />
-    <Property Name="COEF" Type="Edm.Decimal" Precision="13" />
+    <Property Name="COEF" Type="Edm.Decimal" Precision="13" Scale="0"/>
     <Property Name="OP" Type="Edm.String" MaxLength="1" />
     <Property Name="VARNAME" Type="Edm.String" MaxLength="16" />
-    <Property Name="SCRAP" Type="Edm.Decimal" Precision="13" />
+    <Property Name="SCRAP" Type="Edm.Decimal" Precision="13" Scale="2"/>
     <Property Name="ACTNAME" Type="Edm.String" MaxLength="16" />
     <Property Name="SONACTNAME" Type="Edm.String" MaxLength="16" />
     <Property Name="INFOONLY" Type="Edm.String" MaxLength="1" />

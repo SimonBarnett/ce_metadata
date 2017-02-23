@@ -11,7 +11,46 @@ Public Module Module1
 
     Private processedEntities As Dictionary(Of String, EntityType)
 
-    Sub main()
+    Sub Main(ByVal args As String())
+
+        ' --------- '
+        ' Arguments '
+        ' --------- '
+        Dim arg = New clArg(args)
+
+        Dim formdef As String = String.Empty
+
+        ' Sets each argument with switch
+        Try
+            With arg.Keys
+                '? Displays help
+                If .Contains("?") Or .Count = 0 Then
+
+                Else
+                    For Each a As String In arg.Keys
+                        Select Case a.ToLower
+                            Case "fd", "form", "fdef", "f"
+                                formdef = arg(a)
+                            Case "path", "dir", "d"
+                                My.Settings.PATH = arg(a)
+                        End Select
+                    Next
+                End If
+
+                If String.IsNullOrEmpty(formdef) Then
+                    Console.WriteLine("No Form Definitions have been supplied!")
+                ElseIf String.IsNullOrEmpty(My.Settings.PATH) Then
+                    Console.WriteLine("No existing output directory and none supplied!")
+                End If
+
+            End With
+
+            Console.WriteLine(formdef & vbCrLf & My.Settings.PATH)
+
+        Catch ex As Exception
+
+        End Try
+
         'Dim _url = "https://walrus.wonderland.local/odata/Priority/tabula.ini/wlnd/$metadata"
         'Dim requestStream As Stream = Nothing
         'Dim uploadResponse As Net.HttpWebResponse = Nothing
@@ -26,7 +65,14 @@ Public Module Module1
         'End With
         'uploadResponse = uploadRequest.GetResponse()
 
-        sharedvar.FormDef.Load("formdef.xml")
+        ' ------------------------------------------------------ '
+        ' Defines xmls for the Form Definitions and the Metadata '
+        ' ------------------------------------------------------ '
+
+        'Loads the specified xml for the form definitions, currently hardcoded
+        sharedvar.FormDef.Load(String.Format("..\..\xml_files\{0}.XML", formdef))
+
+
         Dim metadata As New XmlDocument
         metadata.Load("dummymetadata.xml")
 
@@ -39,26 +85,43 @@ Public Module Module1
         'nsmgr.AddNamespace("Priority.OData", "http://docs.oasis-open.org/odata/ns/edm")
         'nsmgr.AddNamespace("edmx", "http://docs.oasis-open.org/odata/ns/edmx")
 
+        ' ------------------------------------------------------------ '
+        ' Creates a dictionary of processed entities from the metadata '
+        ' ------------------------------------------------------------ '
+
         processedEntities = New Dictionary(Of String, EntityType)
         Dim root As XmlNode = metadata.DocumentElement
         Dim i As Integer
         Do
             i = 0
             For Each entity As XmlNode In root.SelectNodes("EntityType")
-
+                If String.Compare(entity.Attributes("Name").Value, "ORDERS") = 0 Then
+                    Beep()
+                End If
+                ' Entities that are not "NAME" attributes
                 If Not processedEntities.Keys.Contains(entity.Attributes("Name").Value.ToUpper) Then
-
                     Dim f As Boolean = False
+
+                    ' Iterates through XML nodes that are called NavigationProperty
                     For Each nav As XmlNode In entity.SelectNodes("NavigationProperty")
+
+                        ' Uses XML Node as NavigationProperty
                         Using n As New NavigationProperty(nav)
+
+                            ' If the node has an object assigned to it
                             If Not IsNothing(root.SelectSingleNode(String.Format("EntityType[@Name='{0}']", n.nType))) Then
+
+                                ' If the object type has not already been indexed
                                 If Not processedEntities.Keys.Contains(n.nType) Then
+
                                     f = True
                                     Exit For
                                 End If
                             End If
                         End Using
                     Next
+
+
 
                     If Not f And Not processedEntities.Keys.Contains(entity.Attributes("Name").Value.ToUpper) Then
 
@@ -91,8 +154,13 @@ Public Module Module1
         Loop Until i = 0 'processedEntities.Count = root.SelectNodes("EntityType").Count
 
         For Each entity As EntityType In processedEntities.Values
-            If String.Compare(entity.Name, "FAMILY_LOG") = 0 Then                
+            ' ------------------------------------------------------------------ '
+            ' Create .vb for oData if name attribute matches specified form def. '
+            ' ------------------------------------------------------------------ '
+
+            If String.Compare(entity.Name, formdef) = 0 Then
                 Dim ns As New CodeNamespace("OData")
+                ' Add imports to namespace
                 With ns
                     With .Imports
                         .Add(New CodeNamespaceImport("system"))
@@ -129,7 +197,12 @@ Public Module Module1
                     .WarningLevel = 4
                 End With
 
-                Dim fn As String = String.Format("C:\Users\Administrator\Documents\Visual Studio 2015\Projects\oData\ceOData\PriorityOData\{0}.vb", entity.Name)
+                ' -------------------------------------------------- '
+                ' Writes the oData to a file location and to console '
+                ' -------------------------------------------------- '
+                
+                Dim fn As String = String.Format(My.Settings.PATH & formdef & ".vb")
+                'Dim fn As String = String.Format("C:\Users\Administrator\Documents\Visual Studio 2015\Projects\oData\ceOData\PriorityOData\{0}.vb", entity.Name)
                 Console.WriteLine("Writing {0}...", fn)
                 Using sw As New StreamWriter(fn)
                     sw.Write(wr.ToString)
@@ -138,16 +211,22 @@ Public Module Module1
         Next
     End Sub
 
+    ' --------------------------------------------------------------- '
+    ' Build the namespace for the current entity                      '
+    ' Then builds namespaces for sub-entities (function calls itself) '
+    ' --------------------------------------------------------------- '
     Function BuildNameSpace(ByRef ns As CodeNamespace, ByVal EntityName As String) As CodeNamespace
         With ns
-            processedEntities(EntityName).Assert()
-            .Types.Add(processedEntities(EntityName).QueryClass)
-            .Types.Add(processedEntities(EntityName).CodeTypeDeclaration)
-            If processedEntities(EntityName).NavigationProperty.Values.Count > 0 Then
-                .Types.Add(processedEntities(EntityName).EmumSubFormDeclaration)
-                For Each nav As NavigationProperty In processedEntities(EntityName).NavigationProperty.Values
-                    BuildNameSpace(ns, nav.nType)
-                Next
+            If processedEntities.Keys.Contains(EntityName) Then
+                processedEntities(EntityName).Assert()
+                .Types.Add(processedEntities(EntityName).QueryClass)
+                .Types.Add(processedEntities(EntityName).CodeTypeDeclaration)
+                If processedEntities(EntityName).NavigationProperty.Values.Count > 0 Then
+                    .Types.Add(processedEntities(EntityName).EmumSubFormDeclaration)
+                    For Each nav As NavigationProperty In processedEntities(EntityName).NavigationProperty.Values
+                        BuildNameSpace(ns, nav.nType)
+                    Next
+                End If
             End If
         End With
         Return ns

@@ -7,7 +7,7 @@ Public Class FormProperty
     Private _FormProperty As XmlNode
     Private _EntityName As String
 
-    Sub New(EntityName As String, FormProperty As XmlNode)
+    Sub New(ByVal EntityName As String, ByVal FormProperty As XmlNode)
         _FormProperty = FormProperty
         _EntityName = EntityName
     End Sub
@@ -29,7 +29,11 @@ Public Class FormProperty
 
     Public ReadOnly Property Scale() As Integer
         Get
-            Return _FormProperty.Attributes("Scale").Value
+            If _FormProperty.Attributes("Scale") Is Nothing Then
+                Return 0
+            Else
+                Return _FormProperty.Attributes("Scale").Value
+            End If
         End Get
     End Property
 
@@ -80,6 +84,7 @@ Public Class FormProperty
 
     Public Function PrivateCodeMemberProperty() As CodeMemberField
         Dim pmem As New CodeMemberField
+
         With pmem
             .Name = String.Format("_{0}", Name)
             .Attributes = MemberAttributes.Private + MemberAttributes.Final
@@ -272,7 +277,7 @@ Public Class FormProperty
                     .Add(Snippet("If loading Then"))
                     .Add(Snippet("  _{0} = Value", Name))
                     .Add(Snippet("Else"))
-                    .Add(Snippet("    if not _{0} = value then", Name))                    
+                    .Add(Snippet("    if not _{0} = value then", Name))
                     .Add(Snippet("        Connection.RaiseStartData()"))
                     .Add(Snippet("        loading = true"))
                     .Add(Snippet("        Dim cn As New oDataPUT(Me, PropertyStream(""{0}"", Value), AddressOf HandlesEdit)", Name))
@@ -356,7 +361,7 @@ Public Class FormProperty
         End If
     End Function
 
-    Private Function DefaultRegex() As String        
+    Private Function DefaultRegex() As String
         Select Case nType
             Case "Edm.Decimal"
                 Return "^[0-9\.\-]+$"
